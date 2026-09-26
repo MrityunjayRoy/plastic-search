@@ -5,7 +5,7 @@ This is a simple inverse index
 import time
 import pickle
 from typing import DefaultDict
-from tokenizer import tokenize
+from .tokenizer import tokenize
 
 
 class Indexer:
@@ -65,7 +65,7 @@ def load(path: str) -> tuple[Indexer, float]:
 
     idx = Indexer()
     idx.postings = d["postings"]
-    idx.docs_lens = d["doc_lens"]
+    idx.docs_lens = d["docs_lens"]
     idx.docs_ids = d["doc_ids"]
     idx.n_docs = d["n_docs"]
     idx.total_len = d["total_len"]
