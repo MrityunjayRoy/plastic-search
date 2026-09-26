@@ -7,7 +7,9 @@ authors = [
     { name = "Mrityunjay Roy", email = "royr91599@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "numpy>=2.5.3",
+]
 
 [project.scripts]
 search-engine-v1 = "search_engine.v1:main"
