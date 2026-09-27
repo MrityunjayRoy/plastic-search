@@ -1,0 +1,55 @@
+import json
+import pickle
+import numpy as np
+from .tokenizer import tokenize
+
+ADAPTIVE_THRESHOLD = 1_000_000
+
+class SearcherV2:
+    def __init__(self, index_dir: str):
+        with open(f"{index_dir}/meta.json") as f:
+            self.meta = json.load(f)
+        with open(f"{index_dir}/terms.pkl", "rb") as f:
+            self.terms: dict[str, int] = pickle.load(f)
+        self.offsets = np.load(f"{index_dir}/offsets.u64.py")
+        self.docids = np.load(f"{index_dir}/docids.u32.py", mmap_mode="r")
+        self.impacts = np.load(f"{index_dir}/impacts.f32.py", mmap_mode="r")
+        self.n_docs = self.meta["n_docs"]
+        self._scores = np.zeros(self.n_docs, np.float32)
+
+    def _qtids(self, query: str) -> set[int]:
+        toks = tokenize(query)
+        return {self.terms[t] for t in toks if t in self.terms}
+
+    def search(self, query: str, k: int = 10) -> list[tuple[int, float]]:
+        tids = self._qtids(query)
+        if not tids:
+            return []
+
+        slices = []
+        total = 0
+        for tid in tids:
+            start, end = int(self.offsets[tid]), int(self.offsets[tid + 1])
+            slices.append((start, end))
+            total += end - start
+
+        scores = self._scores
+        scores.fill(0.0)
+
+        for s, e in slices:
+            scores[self.docids[s:e]] += self.impacts[s:e]
+
+        # two ways 
+        if total > ADAPTIVE_THRESHOLD:
+            k_ = min(k, self.n_docs)
+            idx = np.argpartition(scores, -k_)[-k_:]
+            idx = idx[np.argsort(scores[idx])[::-1]]
+            return [(int(d), float(scores[d])) for d in idx if scores[d] > 0]
+
+        touched = np.unique(np.concatenate(
+            [self.docids[s:e] for s,e in slices]))
+        vals = scores[touched]
+        k_ = min(k, len(vals))
+        idx = np.argpartition(vals, -k_)[-k_:]
+        idx = idx[np.argsort(vals[idx])[::-1]]
+        return [(int(touched[i]), float(vals[i])) for i in idx]
