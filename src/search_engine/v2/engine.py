@@ -11,9 +11,9 @@ class SearcherV2:
             self.meta = json.load(f)
         with open(f"{index_dir}/terms.pkl", "rb") as f:
             self.terms: dict[str, int] = pickle.load(f)
-        self.offsets = np.load(f"{index_dir}/offsets.u64.py")
-        self.docids = np.load(f"{index_dir}/docids.u32.py", mmap_mode="r")
-        self.impacts = np.load(f"{index_dir}/impacts.f32.py", mmap_mode="r")
+        self.offsets = np.load(f"{index_dir}/offsets.u64.npy")
+        self.docids = np.load(f"{index_dir}/docids.u32.npy", mmap_mode="r")
+        self.impacts = np.load(f"{index_dir}/impacts.f32.npy", mmap_mode="r")
         self.n_docs = self.meta["n_docs"]
         self._scores = np.zeros(self.n_docs, np.float32)
 

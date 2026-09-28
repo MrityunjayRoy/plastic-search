@@ -5,12 +5,11 @@ import numpy as np
 import time
 from array import array
 
-from numpy._core import float32
 from .tokenizer import tokenize
 
 k1 = 0.9
 b = 0.4
-TF_CLAMP = 6
+TF_CLAMP = 63
 
 def build(path: str, out_dir: str, max_docs: int | None = None):
     os.makedirs(out_dir, exist_ok=True)
@@ -72,6 +71,7 @@ def build(path: str, out_dir: str, max_docs: int | None = None):
     timings["assemble_s"] = time.perf_counter() - t0
 
     # impacts
+    t0 = time.perf_counter()
     dl = np.asarray(doc_lens, dtype=np.float32)
     avgdl = float(np.mean(dl))
     idf_t = np.log(1.0 + (n_docs - dfs + 0.5) / (dfs + 0.5)).astype(np.float32)
@@ -81,7 +81,7 @@ def build(path: str, out_dir: str, max_docs: int | None = None):
 
     for s in range(0, total, CH):
         e = min(s + CH, total)
-        tf_f = tfs[s:e].astype(float32)
+        tf_f = tfs[s:e].astype(np.float32)
         dl_p = dl[doc_ids[s:e]]
         impacts[s:e] = idf_p[s:e] * tf_f * (k1 + 1.0) / (
                 tf_f + k1 * (1.0 - b + b * dl_p / avgdl ))
