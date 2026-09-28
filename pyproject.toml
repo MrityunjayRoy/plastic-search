@@ -13,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 search-engine-v1 = "search_engine.v1:main"
+search-engine-v2 = "search_engine.v2:main"
 
 [build-system]
 requires = ["uv_build>=0.12.0,<0.13.0"]
