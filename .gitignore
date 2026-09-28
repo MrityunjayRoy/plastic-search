@@ -12,3 +12,4 @@ wheels/
 # data
 collection.tsv
 index/
+index.pkl
